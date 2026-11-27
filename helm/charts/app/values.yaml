@@ -1,0 +1,36 @@
+# Values for px-app umbrella chart
+
+global:
+  domain: "px.priprostudios.site"
+  environment: "production"
+
+prometheus:
+  enabled: true
+
+grafana:
+  enabled: true
+
+loki:
+  enabled: true
+
+tempo:
+  enabled: true
+
+pyroscope:
+  enabled: true
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: px.priprostudios.site
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: px-tls
+      hosts:
+        - px.priprostudios.site

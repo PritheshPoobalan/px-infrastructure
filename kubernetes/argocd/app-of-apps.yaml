@@ -1,0 +1,41 @@
+# ArgoCD installation namespace and application
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    argocd.argoproj.io/managed-by: terraform
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd-controller
+  labels:
+    argocd.argoproj.io/managed-by: terraform
+---
+# Install ArgoCD via its official manifests (applied out of band by Terraform/helm)
+# Reference: https://argo-cd.readthedocs.io/en/stable/operator-manual/deployment/
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: px-infrastructure
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/PritheshPoobalan/px-infrastructure.git
+    targetRevision: HEAD
+    path: kubernetes
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: px-platform
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - Validate=false

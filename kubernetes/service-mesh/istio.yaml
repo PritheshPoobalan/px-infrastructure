@@ -1,0 +1,24 @@
+# Service mesh: Istio (optional) - base + default profile installation reference
+# Install with: istioctl install --set values.defaultRevision=default
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: px-istio
+  namespace: istio-system
+spec:
+  profile: default
+  components:
+    pilot:
+      k8s:
+        replicaCount: 1
+    ingressGateways:
+      - name: istio-ingressgateway
+        enabled: true
+    egressGateways:
+      - name: istio-egressgateway
+        enabled: true
+  values:
+    global:
+      proxy:
+        autoInject: enabled
+      useMCP: false

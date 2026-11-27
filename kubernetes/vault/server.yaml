@@ -1,0 +1,58 @@
+# Vault server deployment (dev/demo mode for illustration; production uses Raft + storage backend)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vault
+  labels:
+    app.kubernetes.io/name: vault
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vault
+  namespace: vault
+  labels:
+    app: vault
+spec:
+  serviceName: vault
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault
+  template:
+    metadata:
+      labels:
+        app: vault
+    spec:
+      containers:
+        - name: vault
+          image: hashicorp/vault:1.15
+          args: ["server", "-dev", "-dev-root-token-id=root", "-dev-listen-address=0.0.0.0:8200"]
+          ports:
+            - containerPort: 8200
+              name: http
+          env:
+            - name: VAULT_ADDR
+              value: http://127.0.0.1:8200
+          volumeMounts:
+            - name: config
+              mountPath: /vault/config
+      volumes:
+        - name: config
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+  namespace: vault
+  labels:
+    app: vault
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8200
+      targetPort: http
+      name: http
+  selector:
+    app: vault

@@ -1,0 +1,23 @@
+# Tempo (distributed traces) values
+# Install: helm upgrade --install tempo grafana/tempo -n monitoring -f monitoring/tempo/values.yaml --create-namespace
+
+tempo:
+  enabled: true
+  storage:
+    trace:
+      backend: s3
+    wal:
+      path: /var/tempo/wal
+    s3:
+      bucket: px-tempo-traces
+      region: us-east-1
+  gateway:
+    enabled: true
+  dist:
+    enabled: false
+  ingester:
+    enabled: true
+  query-frontend:
+    enabled: true
+  compactor:
+    enabled: true

@@ -1,0 +1,19 @@
+# Loki + Promtail (logs) values
+# Install: helm upgrade --install loki grafana/loki-stack -n monitoring -f monitoring/loki/values.yaml --create-namespace
+
+loki:
+  enabled: true
+  size: 1x.small
+  persistence:
+    enabled: true
+    size: 50Gi
+  scheme: http
+
+promtail:
+  enabled: true
+
+grafana:
+  enabled: false  # managed by kube-prometheus-stack
+
+prometheus:
+  enabled: false

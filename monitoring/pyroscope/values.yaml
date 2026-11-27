@@ -1,0 +1,23 @@
+# Pyroscope (continuous profiling) values
+# Install: helm upgrade --install pyroscope grafana/pyroscope -n monitoring -f monitoring/pyroscope/values.yaml --create-namespace
+
+pyroscope:
+  server:
+    storage:
+      s3:
+        bucket: px-pyroscope-profiles
+        region: us-east-1
+    ingress:
+      enabled: true
+      hosts:
+        - host: profiling.px.priprostudios.site
+          paths:
+            - path: /
+              pathType: Prefix
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi

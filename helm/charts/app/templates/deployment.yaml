@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: px-backend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: px-backend
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: px-backend
+  template:
+    metadata:
+      labels:
+        app: px-backend
+    spec:
+      containers:
+        - name: px-backend
+          image: "ghcr.io/pritheshpoobalan/px-backend:{{ .Values.appVersion | default .Chart.AppVersion }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10

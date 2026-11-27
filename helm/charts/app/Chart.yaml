@@ -1,0 +1,39 @@
+# Helm chart: px-app (umbrella application chart)
+apiVersion: v2
+name: px-app
+description: Umbrella Helm chart for PritheshPoobalan platform services
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - px
+  - infrastructure
+  - kubernetes
+home: https://github.com/PritheshPoobalan/px-infrastructure
+sources:
+  - https://github.com/PritheshPoobalan/px-infrastructure
+maintainers:
+  - name: Prithesh Poobalan
+    email: hello@priprostudios.site
+
+dependencies:
+  - name: prometheus
+    version: "50.x.x"
+    repository: "https://prometheus-community.github.io/helm-charts"
+    condition: prometheus.enabled
+  - name: grafana
+    version: "7.x.x"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: grafana.enabled
+  - name: loki
+    version: "6.x.x"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: loki.enabled
+  - name: tempo
+    version: "2.x.x"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: tempo.enabled
+  - name: pyroscope
+    version: "0.x.x"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: pyroscope.enabled

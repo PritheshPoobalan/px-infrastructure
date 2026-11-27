@@ -1,0 +1,89 @@
+# kube-prometheus-stack values (Prometheus + Grafana + Alertmanager)
+# Install: helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+#   -n monitoring -f monitoring/prometheus/values.yaml --create-namespace
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    replicas: 2
+    retention: 15d
+    retentionSize: "50Gi"
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+      limits:
+        cpu: 1000m
+        memory: 4Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+
+grafana:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 10Gi
+  service:
+    type: ClusterIP
+  admin:
+    existingSecret: "grafana-admin"
+    userKey: admin-user
+    passwordKey: admin-password
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 2
+    retention: 120h
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+prometheusNodeExporter:
+  enabled: true
+
+kubeApiServer:
+  enabled: true
+
+kubelet:
+  enabled: true
+
+prometheusOperator:
+  enabled: true
+  tlsEnabled: false
+
+defaultRules:
+  enabled: true
+  rules:
+    alertmanager: true
+    etcd: true
+    configReloader: true
+    general: true
+    k8s: true
+    prometheus: true
+    prometheusOperator: true
+    kubeApiserver: true
+    kubelet: true
+    kubeProxy: true
+    kubeScheduler: true
+    kubeStateMetrics: true
+
+networkPolicy:
+  enabled: false

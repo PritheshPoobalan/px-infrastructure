@@ -1,0 +1,24 @@
+# Blackbox exporter (synthetic/probe monitoring) values
+# Install: helm upgrade --install blackbox-exporter prometheus-community/blackbox-exporter -n monitoring
+
+blackbox-exporter:
+  enabled: true
+  config:
+    modules:
+      http_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          valid_status_codes: [200, 301, 302]
+          fail_if_ssl: false
+      http_post_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          method: POST
+          headers:
+            Content-Type: application/json
+          body: '{"healthy": true}'
+
+serviceMonitor:
+  enabled: true

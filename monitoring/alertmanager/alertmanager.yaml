@@ -1,0 +1,60 @@
+# Alertmanager configuration - routes to PagerDuty / Slack / Email / SMS
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: "smtp.sendgrid.net:587"
+  smtp_from: "alerts@priprostudios.site"
+  smtp_auth_username: "apikey"
+  smtp_auth_password: "${SENDGRID_API_KEY}"
+
+route:
+  group_by: ['alertname', 'cluster', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'team-px'
+  routes:
+    - matcher:
+        severity: critical
+      receiver: 'pagerduty-critical'
+    - matcher:
+        severity: warning
+      receiver: 'slack-warnings'
+    - matcher:
+        service: database
+      receiver: 'email-dba'
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster']
+
+receivers:
+  - name: 'team-px'
+    email_configs:
+      - to: 'platform-oncall@priprostudios.site'
+        send_resolved: true
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#px-alerts'
+        title: '[PX] {{ .GroupLabels.alertname }}'
+        text: '{{ .CommonAnnotations.message }}'
+        send_resolved: true
+
+  - name: 'pagerduty-critical'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        send_resolved: true
+
+  - name: 'slack-warnings'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#px-alerts'
+        title: '[PX Warning] {{ .GroupLabels.alertname }}'
+
+  - name: 'email-dba'
+    email_configs:
+      - to: 'dba@priprostudios.site'
+        subject: '[PX] Database alert: {{ .GroupLabels.alertname }}'
+        send_resolved: true

@@ -1,0 +1,16 @@
+# Service mesh: Linkerd (optional alternative to Istio)
+# Install with: linkerd install | kubectl apply -f -
+apiVersion: linkerd.io/v1alpha2
+kind: ServiceProfile
+metadata:
+  name: px-backend.default.svc.cluster.local
+  namespace: default
+spec:
+  routes:
+    - name: health
+      condition:
+        path: /healthz
+        method: GET
+      response:
+        statuses:
+          - 200

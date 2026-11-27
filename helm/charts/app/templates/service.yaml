@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: px-backend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: px-backend
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: px-backend

@@ -1,0 +1,32 @@
+version: 2
+updates:
+  # npm dependencies (ComputeAble API + frontend)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      production-dependencies:
+        patterns:
+          - "*"
+    allow:
+      # Only auto-merge patch-level dependency updates; minors/majors need review.
+      - dependency-type: "direct"
+        update-type: "semver:patch"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps"
+    labels:
+      - "dependencies"
+      - "security"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"

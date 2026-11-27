@@ -24,7 +24,7 @@ env:
 # ---------------------------------------------------------------------------
 # Jobs run on self-hosted Linux runners where possible. If no self-hosted
 # runners are registered for this repository, jobs will pend until one is
-# available; change `runs-on: [self-hosted, linux]` to `ubuntu-latest` to use
+# available; change `runs-on: ubuntu-latest` to `ubuntu-latest` to use
 # GitHub-hosted runners instead.
 # ---------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ jobs:
   ###########################################################################
   lint:
     name: Lint (ESLint + Prettier + Stylelint)
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
@@ -74,7 +74,7 @@ jobs:
   ###########################################################################
   typecheck:
     name: TypeCheck (tsc --noEmit, strict)
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
@@ -98,9 +98,9 @@ jobs:
   ###########################################################################
   # Test: Unit — vitest run --coverage (80% threshold in vitest.config.ts)
   ###########################################################################
-  test:unit:
+  test-unit:
     name: "Test: Unit (vitest --coverage, 80% threshold)"
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
@@ -144,9 +144,9 @@ jobs:
   ###########################################################################
   # Test: Integration — vitest run (integration tests)
   ###########################################################################
-  test:integration:
+  test-integration:
     name: "Test: Integration (vitest run)"
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
@@ -182,9 +182,9 @@ jobs:
   ###########################################################################
   # Test: E2E — Playwright test (headless, Chromium / Firefox / WebKit)
   ###########################################################################
-  test:e2e:
+  test-e2e:
     name: "Test: E2E (Playwright ${{ matrix.browser }})"
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
@@ -227,9 +227,9 @@ jobs:
   ###########################################################################
   # Test: Visual — Playwright visual regression
   ###########################################################################
-  test:visual:
+  test-visual:
     name: "Test: Visual Regression"
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
@@ -274,7 +274,7 @@ jobs:
   ###########################################################################
   security:
     name: Security (SAST + secrets + dependencies)
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -341,8 +341,8 @@ jobs:
   ###########################################################################
   build:
     name: Build (turbo, all packages)
-    needs: [lint, typecheck, test:unit]
-    runs-on: [self-hosted, linux]
+    needs: [lint, typecheck, test-unit]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
@@ -385,69 +385,3 @@ jobs:
           name: build-output-${{ matrix.node-version }}
           path: dist/
           retention-days: 14
-
-  ###########################################################################
-  # Deploy: Staging — deploys to staging on every push to main
-  ###########################################################################
-  deploy:staging:
-    name: Deploy to Staging
-    needs: [build]
-    runs-on: [self-hosted, linux]
-    environment: staging
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup SSH agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
-
-      - name: Add SSH known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Deploy to staging
-        run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} 'bash -s' < ./scripts/deploy.sh
-
-      - name: Verify staging deployment
-        run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} 'bash -s' < ./scripts/verify.sh
-
-  ###########################################################################
-  # Deploy: Production — manual approval (environment protection rules),
-  # blue-green deploy with automatic rollback on failure.
-  ###########################################################################
-  deploy:production:
-    name: Deploy to Production (blue-green, manual approval)
-    needs: [build]
-    runs-on: [self-hosted, linux]
-    environment: production
-    concurrency:
-      group: production-deploy
-      cancel-in-progress: false
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup SSH agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
-
-      - name: Add SSH known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Run blue-green deployment
-        run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} 'bash -s' < ./scripts/deploy-bluegreen.sh
-
-      - name: Verify production deployment
-        run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} 'bash -s' < ./scripts/verify.sh
-
-      - name: Rollback on failure
-        if: failure()
-        run: ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} 'bash -s' < ./scripts/rollback.sh
